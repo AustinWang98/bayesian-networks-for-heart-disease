@@ -23,24 +23,91 @@ from sklearn.metrics import (
 # ----------------------------------------------------------------------------
 # DAG plotting
 # ----------------------------------------------------------------------------
+def _layered_layout(
+    dag: nx.DiGraph,
+    x_jitter: float = 0.0,
+) -> dict[str, tuple[float, float]]:
+    """Hierarchical layered layout for a DAG.
+
+    Uses ``networkx.topological_generations`` to place each node on a
+    horizontal layer (top = roots, bottom = sinks). Nodes inside a layer
+    are spread evenly along the x-axis. Isolated nodes are pushed to a
+    dedicated bottom layer so they don't collide with the rest of the
+    graph.
+    """
+    nodes = list(dag.nodes())
+    isolated = [n for n in nodes if dag.degree(n) == 0]
+    core = dag.subgraph([n for n in nodes if n not in isolated]).copy()
+
+    generations: list[list[str]] = []
+    if core.number_of_nodes() > 0:
+        try:
+            generations = [sorted(layer) for layer in nx.topological_generations(core)]
+        except nx.NetworkXUnfeasible:
+            generations = [sorted(core.nodes())]
+    if isolated:
+        generations.append(sorted(isolated))
+
+    pos: dict[str, tuple[float, float]] = {}
+    n_layers = max(len(generations), 1)
+    for i, layer in enumerate(generations):
+        y = 1.0 - (i / max(n_layers - 1, 1))
+        m = len(layer)
+        for j, node in enumerate(layer):
+            # Evenly spaced in [0.05, 0.95], centered.
+            if m == 1:
+                x = 0.5
+            else:
+                x = 0.05 + 0.9 * j / (m - 1)
+            # Slight jitter per layer to break visual ties of straight columns.
+            if x_jitter and i % 2 == 1:
+                x += x_jitter
+            pos[node] = (x, y)
+    return pos
+
+
+def _resolve_layout(dag: nx.DiGraph, layout: str) -> dict[str, tuple[float, float]]:
+    """Pick a layout, preferring graphviz `dot` when available."""
+    layout = (layout or "layered").lower()
+    if layout in ("layered", "hierarchical", "dot"):
+        # Try graphviz dot first (best hierarchical layout for DAGs).
+        try:
+            from networkx.drawing.nx_agraph import graphviz_layout
+
+            return graphviz_layout(dag, prog="dot")
+        except Exception:
+            pass
+        try:
+            from networkx.drawing.nx_pydot import graphviz_layout as _gv
+
+            return _gv(dag, prog="dot")
+        except Exception:
+            pass
+        return _layered_layout(dag, x_jitter=0.03)
+    if layout == "kamada_kawai":
+        return nx.kamada_kawai_layout(dag)
+    if layout == "spring":
+        return nx.spring_layout(dag, seed=42, k=1.8, iterations=200)
+    if layout == "shell":
+        return nx.shell_layout(dag)
+    return _layered_layout(dag)
+
+
 def plot_dag(
     dag: nx.DiGraph,
     title: str = "",
     highlight_node: str | None = "target",
-    layout: str = "kamada_kawai",
+    layout: str = "layered",
     ax=None,
     figsize: tuple[int, int] = (8, 6),
+    node_size: int = 1700,
+    font_size: int = 9,
 ):
-    """Render a DAG with a target node highlighted."""
+    """Render a DAG with a highlighted target node and a clean layered layout."""
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
 
-    if layout == "kamada_kawai":
-        pos = nx.kamada_kawai_layout(dag)
-    elif layout == "spring":
-        pos = nx.spring_layout(dag, seed=42, k=1.2)
-    else:
-        pos = nx.shell_layout(dag)
+    pos = _resolve_layout(dag, layout)
 
     node_colors = [
         "#ef553b" if n == highlight_node else "#636efa" for n in dag.nodes()
@@ -49,7 +116,7 @@ def plot_dag(
         dag,
         pos,
         node_color=node_colors,
-        node_size=1400,
+        node_size=node_size,
         edgecolors="white",
         linewidths=2,
         ax=ax,
@@ -59,14 +126,25 @@ def plot_dag(
         pos,
         edge_color="#888",
         arrows=True,
-        arrowsize=15,
-        width=1.4,
-        connectionstyle="arc3,rad=0.08",
+        arrowsize=14,
+        width=1.2,
+        node_size=node_size,
+        connectionstyle="arc3,rad=0.10",
+        min_source_margin=12,
+        min_target_margin=12,
         ax=ax,
     )
     nx.draw_networkx_labels(
-        dag, pos, font_size=10, font_color="white", font_weight="bold", ax=ax
+        dag, pos, font_size=font_size, font_color="white", font_weight="bold", ax=ax
     )
+    # Add a small margin so labels at the edges aren't clipped.
+    xs = [p[0] for p in pos.values()]
+    ys = [p[1] for p in pos.values()]
+    if xs and ys:
+        x_pad = (max(xs) - min(xs)) * 0.08 + 0.05
+        y_pad = (max(ys) - min(ys)) * 0.12 + 0.05
+        ax.set_xlim(min(xs) - x_pad, max(xs) + x_pad)
+        ax.set_ylim(min(ys) - y_pad, max(ys) + y_pad)
     ax.set_title(title)
     ax.set_axis_off()
     return ax
@@ -77,12 +155,13 @@ def plot_two_dags(
     dag_b: nx.DiGraph,
     title_a: str = "Expert",
     title_b: str = "Learned",
-    figsize: tuple[int, int] = (16, 6),
+    figsize: tuple[int, int] = (18, 8),
+    layout: str = "layered",
 ):
-    """Side-by-side DAG comparison."""
+    """Side-by-side DAG comparison with clean hierarchical layouts."""
     fig, axes = plt.subplots(1, 2, figsize=figsize)
-    plot_dag(dag_a, title=title_a, ax=axes[0])
-    plot_dag(dag_b, title=title_b, ax=axes[1])
+    plot_dag(dag_a, title=title_a, ax=axes[0], layout=layout)
+    plot_dag(dag_b, title=title_b, ax=axes[1], layout=layout)
     fig.tight_layout()
     return fig
 

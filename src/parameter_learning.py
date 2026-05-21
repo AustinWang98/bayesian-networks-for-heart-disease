@@ -1,6 +1,6 @@
 """Parameter (CPD) estimation for a fixed DAG.
 
-Owner: Member 3 (Parameter Learning & Inference)
+Owner: Qichen Wang (Parameter Learning & Inference)
 
 We support two estimators:
 

@@ -22,8 +22,8 @@ Package layout
 
 __version__ = "1.0.0"
 __authors__ = (
-    "Member 1 — Data & EDA",
-    "Member 2 — Structure Learning",
-    "Member 3 — Parameter Learning & Inference",
-    "Member 4 — Evaluation & Uncertainty",
+    "Yiou Wang — Data & EDA",
+    "Qicheng Jin — Structure Learning",
+    "Qichen Wang — Parameter Learning & Inference",
+    "Jingyuan Wang — Evaluation & Uncertainty",
 )

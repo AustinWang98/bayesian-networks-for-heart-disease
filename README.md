@@ -249,17 +249,17 @@ pytest -q
 │   └── processed/             ← (created on demand)
 │
 ├── src/
-│   ├── data_loader.py         ← UCI download + caching       [Member 1]
-│   ├── preprocessing.py       ← clinical binning + splits    [Member 1]
-│   ├── eda.py                 ← MI matrix, χ², plots         [Member 1]
-│   ├── expert_network.py      ← hand-crafted DAG             [Member 2]
-│   ├── structure_learning.py  ← HC / PC / MMHC               [Member 2]
-│   ├── parameter_learning.py  ← MLE & Bayesian CPDs          [Member 3]
-│   ├── inference.py           ← VE + Pearl's do-operator     [Member 3]
-│   ├── mcmc.py                ← Gibbs & Metropolis-Hastings  [Member 3]
-│   ├── baselines.py           ← LR / RF / XGB                [Member 4]
-│   ├── evaluation.py          ← metrics + reliability        [Member 4]
-│   ├── uncertainty.py         ← bootstrap CIs + decision     [Member 4]
+│   ├── data_loader.py         ← UCI download + caching       [Yiou Wang]
+│   ├── preprocessing.py       ← clinical binning + splits    [Yiou Wang]
+│   ├── eda.py                 ← MI matrix, χ², plots         [Yiou Wang]
+│   ├── expert_network.py      ← hand-crafted DAG             [Qicheng Jin]
+│   ├── structure_learning.py  ← HC / PC / MMHC               [Qicheng Jin]
+│   ├── parameter_learning.py  ← MLE & Bayesian CPDs          [Qichen Wang]
+│   ├── inference.py           ← VE + Pearl's do-operator     [Qichen Wang]
+│   ├── mcmc.py                ← Gibbs & Metropolis-Hastings  [Qichen Wang]
+│   ├── baselines.py           ← LR / RF / XGB                [Jingyuan Wang]
+│   ├── evaluation.py          ← metrics + reliability        [Jingyuan Wang]
+│   ├── uncertainty.py         ← bootstrap CIs + decision     [Jingyuan Wang]
 │   └── visualization.py       ← shared plotting helpers      [all]
 │
 ├── notebooks/
@@ -286,10 +286,10 @@ We split the work to play to each teammate's interests while keeping a clean sep
 
 | Member | Role | Modules owned |
 |---|---|---|
-| **Member 1** | Data engineering, EDA, clinical binning | `data_loader.py`, `preprocessing.py`, `eda.py`, `notebooks/01_data_exploration.ipynb` |
-| **Member 2** | Structure learning, DAG design & comparison | `expert_network.py`, `structure_learning.py`, `notebooks/02_structure_learning.ipynb` |
-| **Member 3** | Parameter learning, exact inference, MCMC samplers, counterfactuals | `parameter_learning.py`, `inference.py`, `mcmc.py`, `notebooks/03_inference_mcmc.ipynb` |
-| **Member 4** | Baselines, evaluation, uncertainty, decision theory, Streamlit app | `baselines.py`, `evaluation.py`, `uncertainty.py`, `app/streamlit_app.py`, `notebooks/04_evaluation_uncertainty.ipynb` |
+| **Yiou Wang** | Data engineering, EDA, clinical binning | `data_loader.py`, `preprocessing.py`, `eda.py`, `notebooks/01_data_exploration.ipynb` |
+| **Qicheng Jin** | Structure learning, DAG design & comparison | `expert_network.py`, `structure_learning.py`, `notebooks/02_structure_learning.ipynb` |
+| **Qichen Wang** | Parameter learning, exact inference, MCMC samplers, counterfactuals | `parameter_learning.py`, `inference.py`, `mcmc.py`, `notebooks/03_inference_mcmc.ipynb` |
+| **Jingyuan Wang** | Baselines, evaluation, uncertainty, decision theory, Streamlit app | `baselines.py`, `evaluation.py`, `uncertainty.py`, `app/streamlit_app.py`, `notebooks/04_evaluation_uncertainty.ipynb` |
 
 `main.ipynb` is co-authored — each section is owned by the corresponding member.
 

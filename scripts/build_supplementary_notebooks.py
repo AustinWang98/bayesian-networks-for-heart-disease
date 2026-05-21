@@ -86,14 +86,14 @@ np.random.seed(42)
 
 
 # ============================================================================
-# 01 — Data exploration (Member 1)
+# 01 — Data exploration (Yiou Wang)
 # ============================================================================
 def build_01():
     cells = [
         md(r"""
         # 01 · Data Exploration & Preprocessing
 
-        **Owner: Member 1.**
+        **Owner: Yiou Wang.**
 
         Deep-dive companion to §2 of `main.ipynb`. We dig into the
         statistical structure of the UCI Heart Disease (Cleveland)
@@ -178,14 +178,14 @@ def build_01():
 
 
 # ============================================================================
-# 02 — Structure learning (Member 2)
+# 02 — Structure learning (Qicheng Jin)
 # ============================================================================
 def build_02():
     cells = [
         md(r"""
         # 02 · Structure Learning Deep Dive
 
-        **Owner: Member 2.**
+        **Owner: Qicheng Jin.**
 
         Companion to §4 of `main.ipynb`. We test the *sensitivity* of
         the learned DAG to hyperparameter choices — scoring function,
@@ -270,14 +270,14 @@ def build_02():
 
 
 # ============================================================================
-# 03 — Inference & MCMC (Member 3)
+# 03 — Inference & MCMC (Qichen Wang)
 # ============================================================================
 def build_03():
     cells = [
         md(r"""
         # 03 · Inference & MCMC Deep Dive
 
-        **Owner: Member 3.**
+        **Owner: Qichen Wang.**
 
         Companion to §§6–8 of `main.ipynb`. We measure MCMC
         convergence quantitatively and replicate the exact answer with
@@ -363,14 +363,14 @@ def build_03():
 
 
 # ============================================================================
-# 04 — Evaluation & Uncertainty (Member 4)
+# 04 — Evaluation & Uncertainty (Jingyuan Wang)
 # ============================================================================
 def build_04():
     cells = [
         md(r"""
         # 04 · Evaluation, Uncertainty & Decision Theory
 
-        **Owner: Member 4.**
+        **Owner: Jingyuan Wang.**
 
         Companion to §§9–10 of `main.ipynb`. We add learning-curve
         analysis, threshold sensitivity, and per-subgroup metrics.

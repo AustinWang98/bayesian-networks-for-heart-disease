@@ -1,6 +1,6 @@
 """Classical ML baselines for benchmark comparison.
 
-Owner: Member 4 (Evaluation & Uncertainty)
+Owner: Jingyuan Wang (Evaluation & Uncertainty)
 
 We compare the Bayesian Network against three discriminative baselines
 trained on one-hot-encoded discrete features (so all models see the

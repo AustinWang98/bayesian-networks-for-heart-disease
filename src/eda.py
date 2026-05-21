@@ -1,6 +1,6 @@
 """Exploratory data analysis helpers.
 
-Owner: Member 1 (Data & EDA)
+Owner: Yiou Wang (Data & EDA)
 """
 
 from __future__ import annotations

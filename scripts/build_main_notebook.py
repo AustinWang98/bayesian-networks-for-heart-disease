@@ -5,10 +5,10 @@ The notebook walks top-to-bottom through:
     0.   Title & team
     1.   Why this problem matters
     2.   End-to-end methodology pipeline
-    3-8.  Member 1 — Data, EDA, clinical binning
-    9-12. Member 2 — Expert + data-driven structure learning
-    13-18. Member 3 — Parameter learning, exact / MCMC inference, do-operator
-    19-25. Member 4 — Baselines, evaluation, uncertainty, decision theory
+    3-8.  Yiou Wang — Data, EDA, clinical binning
+    9-12. Qicheng Jin — Expert + data-driven structure learning
+    13-18. Qichen Wang — Parameter learning, exact / MCMC inference, do-operator
+    19-25. Jingyuan Wang — Baselines, evaluation, uncertainty, decision theory
     26.   Key takeaways
 
 Run::
@@ -70,10 +70,10 @@ A probabilistic framework that combines **clinical domain knowledge** with **dat
 
 | Member | Role | Sections |
 | :-- | :-- | :-- |
-| **Member 1** | Data engineering, EDA, clinical binning | §3 – §8 |
-| **Member 2** | Expert DAG and data-driven structure learning | §9 – §12 |
-| **Member 3** | Parameter learning, exact / MCMC inference, `do`-operator | §13 – §18 |
-| **Member 4** | Baselines, evaluation, uncertainty, decision theory | §19 – §25 |
+| **Yiou Wang** | Data engineering, EDA, clinical binning | §3 – §8 |
+| **Qicheng Jin** | Expert DAG and data-driven structure learning | §9 – §12 |
+| **Qichen Wang** | Parameter learning, exact / MCMC inference, `do`-operator | §13 – §18 |
+| **Jingyuan Wang** | Baselines, evaluation, uncertainty, decision theory | §19 – §25 |
 """))
 
 # ===========================================================================
@@ -133,7 +133,7 @@ plt.tight_layout(); plt.show()
 # ===========================================================================
 CELLS.append(md(r"""
 ---
-# Part I — Data, EDA & Clinical Binning  *(Member 1)*
+# Part I — Data, EDA & Clinical Binning  *(Yiou Wang)*
 """))
 
 CELLS.append(md(r"""
@@ -313,7 +313,7 @@ CELLS.append(md(r"""
 # ===========================================================================
 CELLS.append(md(r"""
 ---
-# Part II — Structure Learning  *(Member 2)*
+# Part II — Structure Learning  *(Qicheng Jin)*
 """))
 
 CELLS.append(md(r"""
@@ -439,7 +439,7 @@ CELLS.append(md(r"""
 # ===========================================================================
 CELLS.append(md(r"""
 ---
-# Part III — Parameter Learning, Inference & Counterfactuals  *(Member 3)*
+# Part III — Parameter Learning, Inference & Counterfactuals  *(Qichen Wang)*
 """))
 
 CELLS.append(md(r"""
@@ -709,7 +709,7 @@ CELLS.append(md(r"""
 # ===========================================================================
 CELLS.append(md(r"""
 ---
-# Part IV — Baselines, Evaluation, Uncertainty & Decision Theory  *(Member 4)*
+# Part IV — Baselines, Evaluation, Uncertainty & Decision Theory  *(Jingyuan Wang)*
 """))
 
 CELLS.append(md(r"""

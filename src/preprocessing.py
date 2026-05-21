@@ -1,6 +1,6 @@
 """Preprocessing pipeline: imputation, discretization, splitting.
 
-Owner: Member 1 (Data & EDA)
+Owner: Yiou Wang (Data & EDA)
 
 Bayesian Networks in pgmpy operate on **discrete** variables, so we use
 domain-motivated binning for continuous columns. The bin edges are

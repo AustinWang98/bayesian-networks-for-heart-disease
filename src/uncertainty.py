@@ -1,6 +1,6 @@
 """Epistemic uncertainty via posterior sampling over CPDs.
 
-Owner: Member 4 (Evaluation & Uncertainty)
+Owner: Jingyuan Wang (Evaluation & Uncertainty)
 
 With a Bayesian estimator and a Dirichlet prior, the posterior over
 each CPD column is itself a Dirichlet. We can sample several plausible

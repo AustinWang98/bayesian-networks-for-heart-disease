@@ -1,6 +1,6 @@
 """Evaluation: discrimination, calibration, probabilistic scoring.
 
-Owner: Member 4 (Evaluation & Uncertainty)
+Owner: Jingyuan Wang (Evaluation & Uncertainty)
 
 In medical risk modeling, *probability quality* matters as much as
 classification accuracy. We therefore report:

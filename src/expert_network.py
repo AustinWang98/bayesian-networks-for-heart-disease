@@ -1,6 +1,6 @@
 """Expert / domain-driven Bayesian Network structure.
 
-Owner: Member 2 (Structure Learning)
+Owner: Qicheng Jin (Structure Learning)
 
 We encode standard cardiology knowledge as the prior DAG:
 

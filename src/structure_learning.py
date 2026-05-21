@@ -1,6 +1,6 @@
 """Data-driven Bayesian Network structure learning.
 
-Owner: Member 2 (Structure Learning)
+Owner: Qicheng Jin (Structure Learning)
 
 We compare three strategies:
 

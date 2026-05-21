@@ -1,6 +1,6 @@
 """Data loader for the UCI Heart Disease dataset.
 
-Owner: Member 1 (Data & EDA)
+Owner: Yiou Wang (Data & EDA)
 
 The processed Cleveland subset is the canonical benchmark used in the
 Bayesian-network literature for this problem. We support two retrieval

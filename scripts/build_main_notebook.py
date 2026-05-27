@@ -754,17 +754,23 @@ display(benchmark_table)
 """))
 
 CELLS.append(md(r"""
-**Reading the table** (higher is better for all columns except `brier`, `log_loss`, `ece`):
+**Reading the table** (higher is better for `accuracy`, `f1`, `roc_auc`, `avg_precision`; lower is better for `brier`, `log_loss`, `ece`):
 
-- The Bayesian Network is **within sampling noise** of the discriminative baselines on AUC / accuracy / F1.
-- It is **better calibrated** (lower Brier and ECE) — important because predicted probabilities are what clinicians act on.
-- On top of that the BN gives us interpretability, counterfactuals, and credible intervals — capabilities the baselines do not have at all.
+- `RandomForest` is strongest on discrimination metrics on this split (`accuracy`, `f1`, `roc_auc`).
+- `BN (Hill-Climb DAG)` remains competitive overall and achieves the best `log_loss` among all models.
+- `LogisticRegression` is the best-calibrated model on this split by `Brier` and `ECE`.
+- The main advantage of the Bayesian Network is therefore not “winning every metric”, but combining competitive predictive performance with structural interpretability, counterfactual reasoning, and uncertainty estimates.
+- These results come from a **single train/test split**, so small metric differences should be interpreted cautiously.
 """))
 
 CELLS.append(md(r"""
 ## 20. Visual head-to-head
 
-Same numbers as the table above, but rendered so you can see who wins on what at a glance. The blue family of models (BNs) consistently leads on **calibration** (`1 − Brier`, `1 − ECE`) while staying competitive on discrimination (`roc_auc`, `f1`).
+The chart visualizes the same benchmark table. Rather than showing a single dominant winner, it highlights a trade-off:
+
+- `RandomForest` is strongest on discrimination.
+- `LogisticRegression` is best calibrated on this split.
+- `BN (Hill-Climb DAG)` stays competitive overall while retaining the structural interpretability that the discriminative baselines do not provide.
 """))
 
 CELLS.append(code(r"""
@@ -775,7 +781,7 @@ plt.show()
 """))
 
 CELLS.append(md(r"""
-**At a glance** (taller = better for every column — we invert Brier and ECE so the visual rule is consistent): the BN family is competitive everywhere and wins on the two calibration columns at the right of the chart.
+**At a glance** (taller = better for every column — we invert Brier and ECE so the visual rule is consistent): the plot makes the trade-off visible immediately. There is no universal winner; instead we see stronger discrimination from `RandomForest`, stronger calibration from `LogisticRegression`, and a competitive but more interpretable `BN (Hill-Climb DAG)`.
 """))
 
 CELLS.append(md(r"""
@@ -805,8 +811,8 @@ plt.tight_layout(); plt.show()
 CELLS.append(md(r"""
 **Reading the panels**:
 
-- **ROC** (left) and **PR** (middle) — all five models cluster tightly: discrimination is roughly comparable.
-- **Reliability** (right) — *here* the BN family pulls ahead. Its curve sits closest to the diagonal, meaning when the BN says "70% risk" roughly 70% of those patients actually have disease.
+- **ROC** (left) and **PR** (middle) — all five models cluster fairly tightly, with `RandomForest` and `BN (Hill-Climb DAG)` among the strongest on this split.
+- **Reliability** (right) — calibration is more mixed. The panel should be read together with the `Brier` / `ECE` table above, where `LogisticRegression` is best calibrated on this split and `BN (Hill-Climb DAG)` remains competitive.
 """))
 
 CELLS.append(md(r"""
@@ -830,6 +836,8 @@ CELLS.append(md(r"""
 
 Until now we've reported a single number per patient. By **bootstrapping** the training fold and re-fitting the BN parameters multiple times, we get a *distribution* over `P(target = 1)` per patient. The width of that distribution captures **epistemic** uncertainty (uncertainty in the model itself), which is critical in clinical workflows.
 
+For the downstream uncertainty and decision analysis, we use the **Hill-Climb DAG BN** because it is the stronger Bayesian-network variant in §19.
+
 Patients with narrow CIs are ones the model is confident about; those with wide CIs are where the system should defer to a human.
 """))
 
@@ -837,8 +845,8 @@ CELLS.append(code(r"""
 from src.uncertainty import UncertaintyConfig, posterior_predictive
 from src.visualization import plot_uncertainty_intervals
 
-uq_cfg = UncertaintyConfig(n_posterior_samples=15)
-uq = posterior_predictive(expert_dag, train, test, state_names=states, cfg=uq_cfg)
+uq_cfg = UncertaintyConfig(n_posterior_samples=50)
+uq = posterior_predictive(hc_dag, train, test, state_names=states, cfg=uq_cfg)
 
 fig, ax = plt.subplots(figsize=(13, 5))
 plot_uncertainty_intervals(uq['mean'], uq['ci_low'], uq['ci_high'], y_true=y_test, ax=ax)
@@ -848,7 +856,7 @@ print(f"Average 95% credible-interval width: {(uq['ci_high'] - uq['ci_low']).mea
 """))
 
 CELLS.append(md(r"""
-**Reading the caterpillar plot**: patients are sorted by mean prediction. The *widest* intervals sit near 0.5 — exactly the cases where the model is least sure. These are the patients where a human clinician should be brought in.
+**Reading the caterpillar plot**: patients are sorted by mean prediction. The *widest* intervals tend to sit in the mid-probability region, where the model is most ambivalent. These are the patients where a human clinician should be brought in.
 """))
 
 CELLS.append(md(r"""
@@ -878,7 +886,7 @@ plt.tight_layout(); plt.show()
 """))
 
 CELLS.append(md(r"""
-**Takeaway**: the (0.4, 0.6] band has the widest credible intervals — confirming the visual from §23. This is the model's "I'm not sure" signal, and it's exactly what makes the BN useful for *human-in-the-loop* deployment.
+**Takeaway**: under the **Hill-Climb DAG BN**, the mid-probability bands tend to have the widest credible intervals, confirming that borderline cases are where the model is least certain. This is the model's "I'm not sure" signal, and it is exactly what makes the BN useful for *human-in-the-loop* deployment.
 """))
 
 CELLS.append(md(r"""
@@ -886,14 +894,19 @@ CELLS.append(md(r"""
 
 In cardiology a **missed disease (FN) is far more costly than an unnecessary referral (FP)**. We encode this as a utility matrix and pick the threshold that minimizes the *expected* cost on the test fold.
 
-The optimal threshold drifts *below* 0.50 — i.e. when in doubt, refer.
+The exact optimum depends both on the FN:FP cost ratio and on the empirical score distribution of the model we are evaluating.
 """))
 
 CELLS.append(code(r"""
 from src.uncertainty import UtilityMatrix, optimal_threshold
 
 util = UtilityMatrix(cost_fp=1.0, cost_fn=10.0)
-best_t, grid_df = optimal_threshold(y_test, bn_probs, utility=util)
+grid = np.linspace(0.01, 0.99, 99)
+best_t, grid_df = optimal_threshold(y_test, bn_hc_probs, utility=util, grid=grid)
+
+display(grid_df.head(10))
+print("best threshold:", round(float(best_t), 2))
+print("min expected cost:", round(float(grid_df['expected_cost'].min()), 4))
 
 fig, ax = plt.subplots(figsize=(8, 4))
 ax.plot(grid_df['threshold'], grid_df['expected_cost'], 'o-', color='#3366CC')
@@ -907,13 +920,22 @@ plt.tight_layout(); plt.show()
 
 rows = []
 for ratio in [1, 2, 5, 10, 20, 50]:
-    t, _ = optimal_threshold(y_test, bn_probs, utility=UtilityMatrix(cost_fp=1.0, cost_fn=float(ratio)))
-    rows.append({'FN:FP cost ratio': ratio, 'optimal threshold': round(t, 2)})
+    t, df_ratio = optimal_threshold(
+        y_test,
+        bn_hc_probs,
+        utility=UtilityMatrix(cost_fp=1.0, cost_fn=float(ratio)),
+        grid=grid,
+    )
+    rows.append({
+        'FN:FP cost ratio': ratio,
+        'optimal threshold': round(float(t), 2),
+        'min expected cost': round(float(df_ratio['expected_cost'].min()), 4),
+    })
 display(pd.DataFrame(rows))
 """))
 
 CELLS.append(md(r"""
-**Reading the table**: as the cost of missing a real disease grows relative to over-referring, the optimal threshold drops. At a 10:1 cost ratio it sits well below 0.5 — i.e. the BN should err on the side of *catching* disease, not on avoiding referrals. At 50:1, the optimal threshold approaches ~0.2. This kind of calibrated decision rule is only possible because the BN produces well-calibrated probabilities to begin with.
+**Reading the table**: for the **Hill-Climb DAG BN**, the optimal threshold on this split settles at a low value (about `0.14`) across the tested FN:FP ratios rather than near the naive `0.50` default. In other words, the cost-sensitive decision rule is consistently *more willing to refer borderline patients*. The table also reports the minimum expected cost explicitly so the threshold choice can be audited rather than treated as a black box.
 """))
 
 # ===========================================================================
@@ -925,13 +947,13 @@ CELLS.append(md(r"""
 
 | ✅ | What we showed |
 | :-- | :-- |
-| **Competitive accuracy** | BN matches or beats Logistic Regression / Random Forest / XGBoost on AUC, accuracy and F1. |
-| **Better calibration** | Lower Brier and ECE than the discriminative baselines on every run. |
+| **Competitive performance** | `BN (Hill-Climb DAG)` remains competitive with the discriminative baselines on this split, though `RandomForest` is strongest on discrimination metrics. |
+| **Calibration trade-off** | Calibration is mixed rather than uniformly better: `LogisticRegression` performs best on `Brier` and `ECE`, while the BN remains useful because it supports structural interpretation and uncertainty estimation. |
 | **Interpretable structure** | Expert and Hill-Climb DAGs agree on the strongest edges (e.g. `target → cp`, `target → thal`). |
 | **Exact ↔ MCMC cross-check** | Gibbs / Metropolis-Hastings posteriors converge to Variable Elimination after ~2 000 samples. |
 | **Counterfactuals** | Pearl's `do`-operator yields *interventional* risk estimates a black-box classifier cannot produce. |
 | **Per-patient uncertainty** | 95% credible intervals via posterior CPD bootstrap → tells the clinician when to defer. |
-| **Decision-theoretic threshold** | Optimal cut-off drifts below 0.50 under the realistic 10:1 FN:FP cost ratio. |
+| **Decision-theoretic threshold** | Under asymmetric medical costs, the Hill-Climb BN prefers a threshold well below 0.50 on this split, favoring sensitivity over avoiding referrals. |
 
 ### Future work
 1. Extend to the full multi-class severity target (`num ∈ {0,1,2,3,4}`).

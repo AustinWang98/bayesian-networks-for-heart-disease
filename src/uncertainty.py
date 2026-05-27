@@ -129,7 +129,9 @@ def optimal_threshold(
     Also returns the full grid for plotting.
     """
     utility = utility or UtilityMatrix()
-    grid = grid if grid is not None else np.linspace(0.05, 0.95, 19)
+    # Use a fine grid by default so the optimum is less likely to be
+    # artificially pinned to a coarse boundary such as 0.05.
+    grid = grid if grid is not None else np.linspace(0.01, 0.99, 99)
     rows = []
     for t in grid:
         rows.append(

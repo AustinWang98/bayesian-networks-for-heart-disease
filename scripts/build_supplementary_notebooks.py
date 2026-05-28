@@ -433,11 +433,11 @@ def build_04():
         df_test['y'] = y_test
 
         rows = []
-        for (subgroup_var, subgroup_val), grp in df_test.groupby(['sex']):
+        for sex_val, grp in df_test.groupby('sex', observed=True):
             if grp['y'].nunique() < 2: continue
-            rows.append({'subgroup': f'sex={subgroup_val}', 'n': len(grp),
+            rows.append({'subgroup': f'sex={sex_val}', 'n': len(grp),
                          'AUC': roc_auc_score(grp['y'], grp['prob'])})
-        for age_val, grp in df_test.groupby('age'):
+        for age_val, grp in df_test.groupby('age', observed=True):
             if grp['y'].nunique() < 2: continue
             rows.append({'subgroup': f'age={age_val}', 'n': len(grp),
                          'AUC': roc_auc_score(grp['y'], grp['prob'])})

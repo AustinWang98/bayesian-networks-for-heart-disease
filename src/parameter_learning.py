@@ -138,14 +138,18 @@ def cpd_summary(bn: DiscreteBayesianNetwork) -> pd.DataFrame:
     for node in bn.nodes():
         cpd = bn.get_cpds(node)
         parents = cpd.get_evidence()
+        n_states = len(cpd.state_names[node])
+        card_product_parents = cpd.values.size // n_states
+        # Free params: each parent configuration has n_states − 1 degrees of
+        # freedom (last entry fixed by sum-to-one).
+        n_params = (n_states - 1) * card_product_parents
         rows.append(
             {
                 "node": node,
-                "n_states": len(cpd.state_names[node]),
+                "n_states": n_states,
                 "parents": ", ".join(parents) if parents else "-",
-                "n_params": cpd.values.size - (cpd.values.shape[0] ** 0) * 0  # noqa: E501
-                + cpd.values.size - cpd.values.shape[0],
-                "card_product_parents": int(cpd.values.size / len(cpd.state_names[node])),
+                "n_params": n_params,
+                "card_product_parents": card_product_parents,
             }
         )
     return pd.DataFrame(rows)
@@ -156,11 +160,18 @@ def log_likelihood(bn: DiscreteBayesianNetwork, data: pd.DataFrame) -> float:
 
     Robust to differences in axis ordering between pgmpy versions: we
     use ``cpd.get_value`` which accepts kwarg-style state lookups.
+
+    If any CPD lookup fails (which only happens when ``state_names`` is
+    not locked across train/test), we fall back to a uniform probability
+    *and* emit a single warning with the offending row — so the silent
+    masking that used to live here can no longer hide a broken state set.
     """
     import numpy as np
 
     total = 0.0
     n = len(data)
+    n_fallback = 0
+    fallback_sample: tuple | None = None
     for _, row in data.iterrows():
         joint = 1.0
         for node in bn.nodes():
@@ -171,9 +182,19 @@ def log_likelihood(bn: DiscreteBayesianNetwork, data: pd.DataFrame) -> float:
                 kwargs[p] = str(row[p])
             try:
                 p_val = float(cpd.get_value(**kwargs))
-            except Exception:
-                # Fallback: state not in CPD (rare). Use uniform.
+            except Exception as exc:
+                if n_fallback == 0:
+                    fallback_sample = (node, dict(kwargs), str(exc))
+                n_fallback += 1
                 p_val = 1.0 / len(cpd.state_names[node])
             joint *= max(p_val, 1e-12)
         total += np.log(joint)
+    if n_fallback:
+        node, kwargs, exc = fallback_sample
+        logger.warning(
+            "log_likelihood: %d CPD lookups fell back to uniform "
+            "(first: node=%r evidence=%r — %s). Pass an explicit "
+            "state_names dict to fit_parameters to lock state ordering.",
+            n_fallback, node, kwargs, exc,
+        )
     return total / n

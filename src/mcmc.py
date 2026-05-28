@@ -178,8 +178,9 @@ def metropolis_hastings(
     if query not in free_vars:
         raise ValueError(f"Query variable '{query}' must be unobserved.")
 
-    # Initialize: evidence locked; free vars randomly from each variable's
-    # marginal prior of states.
+    # Initialize: evidence locked; free vars sampled uniformly from each
+    # variable's state space. Any starting point converges after burn-in;
+    # the choice here is uniform rather than from the marginal prior.
     state = dict(evidence)
     for v in free_vars:
         states = bn.get_cpds(v).state_names[v]
@@ -231,21 +232,56 @@ def metropolis_hastings(
 # ----------------------------------------------------------------------------
 # Diagnostics
 # ----------------------------------------------------------------------------
-def running_mean(trace: pd.Series) -> np.ndarray:
-    """Running estimate of E[1{trace == positive_state}]."""
-    if trace.dtype != bool:
-        # Convert to indicator of the maximum state (e.g. '1' for binary target).
-        positive = sorted(trace.unique())[-1]
-        x = (trace == positive).astype(float).values
-    else:
+def _resolve_target_state(trace: pd.Series, target_state: str | None) -> str | None:
+    """Pick the indicator state for a 0/1 reduction of a categorical trace.
+
+    Returns ``None`` for boolean traces (caller should treat them directly).
+    Raises ``ValueError`` for multi-state traces when ``target_state`` is
+    not supplied — the old behavior of silently picking ``max(unique)``
+    was a latent bug for non-binary targets.
+    """
+    if trace.dtype == bool:
+        return None
+    if target_state is not None:
+        return target_state
+    unique = sorted(trace.unique())
+    if len(unique) != 2:
+        raise ValueError(
+            f"trace has {len(unique)} distinct values {unique}; "
+            "pass target_state explicitly for non-binary traces."
+        )
+    return unique[-1]
+
+
+def running_mean(
+    trace: pd.Series, target_state: str | None = None
+) -> np.ndarray:
+    """Running estimate of P(trace == target_state).
+
+    For binary traces (e.g. ``target ∈ {'0','1'}``) we default to the
+    lexicographically larger state. For multi-state traces, the caller
+    must pass ``target_state`` explicitly — see :func:`_resolve_target_state`.
+    """
+    resolved = _resolve_target_state(trace, target_state)
+    if resolved is None:
         x = trace.astype(float).values
+    else:
+        x = (trace == resolved).astype(float).values
     return np.cumsum(x) / np.arange(1, len(x) + 1)
 
 
-def autocorrelation(trace: pd.Series, max_lag: int = 50) -> np.ndarray:
-    """Sample autocorrelation of a 0/1 indicator trace."""
-    positive = sorted(trace.unique())[-1]
-    x = (trace == positive).astype(float).values
+def autocorrelation(
+    trace: pd.Series, max_lag: int = 50, target_state: str | None = None
+) -> np.ndarray:
+    """Sample autocorrelation of a 0/1 indicator trace.
+
+    See :func:`running_mean` for how ``target_state`` is resolved.
+    """
+    resolved = _resolve_target_state(trace, target_state)
+    if resolved is None:
+        x = trace.astype(float).values
+    else:
+        x = (trace == resolved).astype(float).values
     x = x - x.mean()
     n = len(x)
     acf = np.zeros(max_lag + 1)

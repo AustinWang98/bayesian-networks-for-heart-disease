@@ -62,15 +62,24 @@ def predict_proba(
     if show_progress:
         iterator = tqdm(iterator, total=len(data), desc="VE inference")
 
+    n_dropped = 0
+    dropped_sample: tuple | None = None
     for i, row in enumerate(iterator):
         evidence = dict(zip(feature_cols, row))
-        # Skip evidence values not present in any CPD state set: these would
-        # be ignored anyway and they slow pgmpy down with warnings.
-        cleaned = {
-            k: v
-            for k, v in evidence.items()
-            if v in bn.get_cpds(k).state_names[k]
-        }
+        # Drop evidence values pgmpy would reject (state not in CPD). This
+        # only fires when state_names is not locked across train/test —
+        # which means the prediction is being computed on a *different*
+        # evidence set than the caller passed in. We track the drop count
+        # so the silent failure is reported after the loop.
+        cleaned: dict[str, str] = {}
+        for k, v in evidence.items():
+            valid = bn.get_cpds(k).state_names[k]
+            if v in valid:
+                cleaned[k] = v
+            else:
+                if n_dropped == 0:
+                    dropped_sample = (i, k, v, list(valid))
+                n_dropped += 1
         try:
             factor = engine.query([target], evidence=cleaned, show_progress=False)
             probs[i] = factor.values
@@ -78,6 +87,17 @@ def predict_proba(
             logger.warning("Inference failed on row %d (%s). Using marginal.", i, exc)
             marg = engine.query([target], show_progress=False)
             probs[i] = marg.values
+
+    if n_dropped:
+        row_idx, k, v, valid = dropped_sample
+        logger.warning(
+            "predict_proba: %d evidence values were dropped because the "
+            "observed state was not in the fitted CPD "
+            "(first: row=%d, %s=%r, valid states=%s). Predictions for "
+            "those rows are conditioned on a *partial* evidence set. "
+            "Lock state_names at fit time to fix.",
+            n_dropped, row_idx, k, v, valid,
+        )
 
     return pd.DataFrame(probs, columns=target_states)
 

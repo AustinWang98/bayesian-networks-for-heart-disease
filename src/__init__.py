@@ -24,6 +24,6 @@ __version__ = "1.0.0"
 __authors__ = (
     "Yiou Wang — Data & EDA",
     "Qicheng Jin — Structure Learning",
-    "Qichen Wang — Parameter Learning & Inference",
+    "Chenqi Wang — Parameter Learning & Inference",
     "Jingyuan Wang — Evaluation & Uncertainty",
 )

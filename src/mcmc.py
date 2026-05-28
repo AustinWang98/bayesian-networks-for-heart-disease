@@ -1,6 +1,6 @@
 """Approximate inference: Gibbs and Metropolis-Hastings.
 
-Owner: Qichen Wang (Parameter Learning & Inference)
+Owner: Chenqi Wang (Parameter Learning & Inference)
 
 While Variable Elimination is tractable on this small network, the
 class proposal explicitly calls for **sampling-based posterior

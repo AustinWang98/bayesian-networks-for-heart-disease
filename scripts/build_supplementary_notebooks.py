@@ -270,14 +270,14 @@ def build_02():
 
 
 # ============================================================================
-# 03 — Inference & MCMC (Qichen Wang)
+# 03 — Inference & MCMC (Chenqi Wang)
 # ============================================================================
 def build_03():
     cells = [
         md(r"""
         # 03 · Inference & MCMC Deep Dive
 
-        **Owner: Qichen Wang.**
+        **Owner: Chenqi Wang.**
 
         Companion to §§6–8 of `main.ipynb`. We measure MCMC
         convergence quantitatively and replicate the exact answer with

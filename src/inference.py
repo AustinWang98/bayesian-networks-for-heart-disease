@@ -1,6 +1,6 @@
 """Exact inference and batch posterior predictions.
 
-Owner: Qichen Wang (Parameter Learning & Inference)
+Owner: Chenqi Wang (Parameter Learning & Inference)
 
 We use pgmpy's Variable Elimination for exact marginal inference.
 Approximate inference (Gibbs, Metropolis-Hastings) lives in

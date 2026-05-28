@@ -254,9 +254,9 @@ pytest -q
 │   ├── eda.py                 ← MI matrix, χ², plots         [Yiou Wang]
 │   ├── expert_network.py      ← hand-crafted DAG             [Qicheng Jin]
 │   ├── structure_learning.py  ← HC / PC / MMHC               [Qicheng Jin]
-│   ├── parameter_learning.py  ← MLE & Bayesian CPDs          [Qichen Wang]
-│   ├── inference.py           ← VE + Pearl's do-operator     [Qichen Wang]
-│   ├── mcmc.py                ← Gibbs & Metropolis-Hastings  [Qichen Wang]
+│   ├── parameter_learning.py  ← MLE & Bayesian CPDs          [Chenqi Wang]
+│   ├── inference.py           ← VE + Pearl's do-operator     [Chenqi Wang]
+│   ├── mcmc.py                ← Gibbs & Metropolis-Hastings  [Chenqi Wang]
 │   ├── baselines.py           ← LR / RF / XGB                [Jingyuan Wang]
 │   ├── evaluation.py          ← metrics + reliability        [Jingyuan Wang]
 │   ├── uncertainty.py         ← bootstrap CIs + decision     [Jingyuan Wang]
@@ -288,7 +288,7 @@ We split the work to play to each teammate's interests while keeping a clean sep
 |---|---|---|
 | **Yiou Wang** | Data engineering, EDA, clinical binning | `data_loader.py`, `preprocessing.py`, `eda.py`, `notebooks/01_data_exploration.ipynb` |
 | **Qicheng Jin** | Structure learning, DAG design & comparison | `expert_network.py`, `structure_learning.py`, `notebooks/02_structure_learning.ipynb` |
-| **Qichen Wang** | Parameter learning, exact inference, MCMC samplers, counterfactuals | `parameter_learning.py`, `inference.py`, `mcmc.py`, `notebooks/03_inference_mcmc.ipynb` |
+| **Chenqi Wang** | Parameter learning, exact inference, MCMC samplers, counterfactuals | `parameter_learning.py`, `inference.py`, `mcmc.py`, `notebooks/03_inference_mcmc.ipynb` |
 | **Jingyuan Wang** | Baselines, evaluation, uncertainty, decision theory, Streamlit app | `baselines.py`, `evaluation.py`, `uncertainty.py`, `app/streamlit_app.py`, `notebooks/04_evaluation_uncertainty.ipynb` |
 
 `main.ipynb` is co-authored — each section is owned by the corresponding member.

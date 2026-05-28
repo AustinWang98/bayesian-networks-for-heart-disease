@@ -7,7 +7,7 @@ The notebook walks top-to-bottom through:
     2.   End-to-end methodology pipeline
     3-8.  Yiou Wang — Data, EDA, clinical binning
     9-12. Qicheng Jin — Expert + data-driven structure learning
-    13-18. Qichen Wang — Parameter learning, exact / MCMC inference, do-operator
+    13-18. Chenqi Wang — Parameter learning, exact / MCMC inference, do-operator
     19-25. Jingyuan Wang — Baselines, evaluation, uncertainty, decision theory
     26.   Key takeaways
 
@@ -72,7 +72,7 @@ A probabilistic framework that combines **clinical domain knowledge** with **dat
 | :-- | :-- | :-- |
 | **Yiou Wang** | Data engineering, EDA, clinical binning | §3 – §8 |
 | **Qicheng Jin** | Expert DAG and data-driven structure learning | §9 – §12 |
-| **Qichen Wang** | Parameter learning, exact / MCMC inference, `do`-operator | §13 – §18 |
+| **Chenqi Wang** | Parameter learning, exact / MCMC inference, `do`-operator | §13 – §18 |
 | **Jingyuan Wang** | Baselines, evaluation, uncertainty, decision theory | §19 – §25 |
 """))
 
@@ -439,7 +439,7 @@ CELLS.append(md(r"""
 # ===========================================================================
 CELLS.append(md(r"""
 ---
-# Part III — Parameter Learning, Inference & Counterfactuals  *(Qichen Wang)*
+# Part III — Parameter Learning, Inference & Counterfactuals  *(Chenqi Wang)*
 """))
 
 CELLS.append(md(r"""

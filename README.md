@@ -76,8 +76,8 @@ oldpeak  : none (<1) | mild (1-2) | marked (>2)
        │                   │                    │
 ┌──────▼──────┐    ┌───────▼───────┐    ┌───────▼────────┐
 │ Expert DAG  │    │ Data-driven   │    │ Baseline ML    │
-│ (cardiology)│    │ DAG (HC/PC/   │    │ (LR / RF / XGB)│
-│             │    │  MMHC)        │    │                │
+│ (cardiology)│    │ DAG (HC / PC) │    │ (LR / RF / XGB)│
+│             │    │               │    │                │
 └──────┬──────┘    └───────┬───────┘    └───────┬────────┘
        │                   │                    │
        └──────────┬────────┘                    │
@@ -112,14 +112,14 @@ Every box is a tested, reusable module in `src/` (see [Repository structure](#7-
 
 ### 4.1 — Structure learning
 
-We compare **four** candidate DAGs and pick the best by held-out log-likelihood and BIC.
+We compare **three** candidate DAGs in `main.ipynb` and rank them by BIC / K2 / BDeu network scores. A fourth method (MMHC) is implemented in `src/structure_learning.py` for completeness but is not run end-to-end in `main.ipynb` (it is comparatively slow on this small sample and adds little signal beyond Hill-Climb here).
 
-| # | Strategy | Idea | Module |
-|---|---|---|---|
-| 1 | **Expert (cardiology)** | Hand-crafted DAG encoding established cardiology knowledge. | `src/expert_network.py` |
-| 2 | **Hill-Climb (BIC)** | Greedy edge-add/remove/reverse over the BIC scoring function. | `src/structure_learning.py` |
-| 3 | **PC algorithm** | Constraint-based: build the skeleton via χ² conditional independence tests, orient v-structures. | `src/structure_learning.py` |
-| 4 | **MMHC (hybrid)** | Max-Min skeleton + Hill-Climb inside it — usually the strongest small-data DAG learner. | `src/structure_learning.py` |
+| # | Strategy | Idea | Module | In `main.ipynb`? |
+|---|---|---|---|---|
+| 1 | **Expert (cardiology)** | Hand-crafted DAG encoding established cardiology knowledge. | `src/expert_network.py` | ✓ |
+| 2 | **Hill-Climb (BIC)** | Greedy edge-add/remove/reverse over the BIC scoring function. | `src/structure_learning.py` | ✓ |
+| 3 | **PC algorithm** | Constraint-based: build the skeleton via χ² conditional independence tests, orient v-structures. | `src/structure_learning.py` | ✓ |
+| 4 | **MMHC (hybrid)** | Max-Min skeleton + Hill-Climb inside it. | `src/structure_learning.py` | implemented, not benchmarked live |
 
 ### 4.2 — Parameter learning
 
@@ -152,39 +152,62 @@ A **utility-aware threshold** is then chosen to minimize expected cost under a c
 
 > Numbers in this section are produced by `main.ipynb`. Re-run it end-to-end to refresh.
 
-### 5.1 — Held-out benchmark (typical run)
+### 5.1 — Held-out benchmark (single 80/20 split, seed = 42)
+
+Numbers below are the actual values produced by `main.ipynb`, sorted by ROC-AUC. Because this is a **single train/test split** on ~300 patients, small differences should be read as ties rather than rankings.
 
 | Model | Accuracy | ROC-AUC | Avg. precision | Brier ↓ | Log-loss ↓ | ECE ↓ |
 |---|---|---|---|---|---|---|
-| **BN — expert DAG (BDeu)**       | 0.83 | 0.91 | 0.91 | 0.13 | 0.42 | 0.06 |
-| **BN — Hill-Climb DAG (BDeu)**   | 0.85 | 0.92 | 0.92 | 0.12 | 0.39 | 0.05 |
-| Logistic Regression              | 0.85 | 0.91 | 0.90 | 0.13 | 0.41 | 0.07 |
-| Random Forest                    | 0.83 | 0.90 | 0.89 | 0.14 | 0.45 | 0.10 |
-| XGBoost                          | 0.84 | 0.91 | 0.90 | 0.13 | 0.42 | 0.09 |
+| Random Forest                  | 0.833 | **0.938** | **0.931** | **0.110** | 0.352 | 0.172 |
+| **BN — Hill-Climb DAG (BDeu)** | 0.783 | 0.935 | 0.921 | 0.122 | **0.350** | 0.120 |
+| Logistic Regression            | 0.817 | 0.917 | 0.901 | 0.120 | 0.372 | **0.094** |
+| XGBoost                        | 0.833 | 0.916 | 0.903 | 0.127 | 0.406 | 0.124 |
+| **BN — expert DAG (BDeu)**     | 0.733 | 0.872 | 0.842 | 0.178 | 0.654 | 0.184 |
 
-**Take-away:** the Bayesian Network is *competitive on discrimination* (within sampling noise of the best baseline) and **better calibrated** (lower ECE). On top of that it provides interpretable structure, credible intervals, and counterfactual reasoning — which the baselines do not.
+**Take-away:** the head-to-head is a *trade-off*, not a single winner.
+
+- **Random Forest** is strongest on discrimination (ROC-AUC, average precision) and Brier.
+- **BN — Hill-Climb DAG** is right behind on discrimination and takes the best `log_loss`.
+- **Logistic Regression** is the best-calibrated model by ECE on this split.
+- **BN — expert DAG** is the weakest predictor but the most defensible to a cardiologist (every edge has a written rationale).
+
+The Bayesian Network's value is therefore *not* "wins every metric"; it is **competitive predictive performance combined with structural interpretability, Pearl-style counterfactual queries, and per-patient credible intervals** — capabilities the discriminative baselines do not have.
 
 ### 5.2 — Reliability diagrams
 
-We plot each model's reliability curve in `main.ipynb`. The BN sits closer to the diagonal — i.e. when it says *"60% risk"*, ~60% of those patients really do have disease.
+`main.ipynb` plots each model's reliability curve side-by-side. The diagonal target — *"when the model says 60%, ~60% of those patients truly have disease"* — is approached by Logistic Regression most closely on this split; the BN variants are reasonable but not best.
 
 ### 5.3 — Counterfactuals
 
 Sample question we can answer with the BN but not the baselines:
 
-> **For a 60-year-old male with high cholesterol and prehypertension, how much would his predicted risk drop if we (hypothetically) restored his cholesterol to the desirable range?**
+> **For a high-risk patient (`age = 65+`, `sex = 1`, `chol = high`, `trestbps = hyper`, `exang = 1`), how much would the predicted risk drop if we (hypothetically) normalized cholesterol or blood pressure?**
 
 ```python
 posterior(engine, "target", evidence)
-# →  P(disease | observed) = 0.71
+# →  P(disease | observed)              = 0.83
 
-do_intervention(bn, {"chol": "desirable"}, query="target")
-# →  P(disease | do(chol = desirable)) = 0.53   (Δ = −0.18)
+do_intervention(bn, {"chol": "desirable"})
+# →  P(disease | do(chol = desirable))  = 0.42   (Δ = −0.41)
+
+do_intervention(bn, {"trestbps": "normal"})
+# →  P(disease | do(BP = normal))       = 0.41   (Δ = −0.42)
+
+do_intervention(bn, {"chol": "desirable", "trestbps": "normal"})
+# →  P(disease | do(chol+BP normalized))= 0.32   (Δ = −0.52)
 ```
 
 ### 5.4 — MCMC vs. exact
 
-The Gibbs and Metropolis-Hastings posteriors converge to within 0.01 of the Variable-Elimination answer after ~2 000 post-burn-in samples on a representative query (see `notebooks/03_inference_mcmc.ipynb` for trace plots, autocorrelation, and effective sample size).
+On the same representative query, with 3 000 post-burn-in samples:
+
+| | P(target = 0) | P(target = 1) |
+|---|---|---|
+| Exact (Variable Elimination) | 0.169 | 0.831 |
+| Gibbs                        | 0.186 | 0.814 |
+| Metropolis-Hastings          | 0.143 | 0.857 |
+
+Both samplers land within ~0.03 of the exact posterior — close enough to be a useful sanity check on both the network and the inference implementations. Trace plots, autocorrelation, and convergence-vs-sample-size curves are in `notebooks/03_inference_mcmc.ipynb`.
 
 ---
 

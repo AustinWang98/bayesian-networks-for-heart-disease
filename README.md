@@ -242,13 +242,23 @@ jupyter notebook main.ipynb
 
 Run all cells. End-to-end runtime is ~2 minutes on a laptop.
 
-### 6.4 — Try the interactive app
+### 6.4 — Interactive demonstration website (recommended for demos)
 
 ```bash
-streamlit run app/streamlit_app.py
+./run_demo.sh
+# or: streamlit run app/streamlit_app.py
 ```
 
-A browser tab opens with sliders for every clinical feature and a live posterior bar chart.
+Opens **CardioRisk Copilot** in your browser — a single-page MVP-style
+demo for non-technical audiences:
+
+| Section | What you can do |
+|---------|-----------------|
+| **Patient snapshot** | Start from a low/moderate/high example and edit familiar chart fields |
+| **Care-team answer** | See the estimated heart-disease risk and suggested workflow |
+| **Why this estimate** | Review the top chart items moving the estimate |
+| **Care action preview** | Compare the current profile with one practical scenario |
+| **MVP snapshot** | Show the training/test split and transparent Bayesian methodology |
 
 ### 6.5 — Sanity tests
 

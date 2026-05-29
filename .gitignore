@@ -15,6 +15,7 @@ dist/
 venv/
 env/
 .venv/
+.venv*/
 .env
 
 # Jupyter
@@ -37,6 +38,7 @@ data/processed/
 *.joblib
 reports/figures/cache/
 mlruns/
+.streamlit/credentials.toml
 
 # Keep folder structure
 !data/raw/.gitkeep
